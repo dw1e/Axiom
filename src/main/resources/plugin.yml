@@ -1,0 +1,23 @@
+name: Axiom
+main: me.dw1e.axiom.Axiom
+version: 0.1.0.0
+description: A private anti-cheat system.
+author: dw1e
+depend: [ ProtocolLib ]
+
+commands:
+  axiom: { }
+
+permissions:
+  axiom.bypass:
+    default: false
+  axiom.command.alerts:
+    default: op
+  axiom.command.gui:
+    default: op
+  axiom.command.info:
+    default: op
+  axiom.command.reload:
+    default: op
+  axiom.command.resetvl:
+    default: op

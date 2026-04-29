@@ -1,0 +1,50 @@
+# Axiom - 主配置文件
+
+# 警报设置
+alerts:
+  # 警报格式. 占位符: %prefix%, %player%, %check%, %type%, %vl%, %thresholds%, %debug%
+  format: "%prefix% §7Flagged §f%player% §7for §f%check% §8(§7Type §f%type%§8) §8[§7VL: §f%vl%§8/§7%thresholds%§8] §7%debug%"
+
+  # 警报间隔设置 (防止刷屏)
+  cooldown:
+    # 是否启用警报间隔
+    enabled: true
+    # 间隔时间
+    interval: 10 # ticks
+
+  # 是否将警报同步显示至控制台
+  print_to_console: true
+
+# 违规次数重置间隔设置
+violations_reset:
+  # 间隔多久重置一次违规次数?
+  interval: 8 # 分钟
+  # 重置后的消息提示. 占位符: %prefix%
+  message: "%prefix% §7已重置所有玩家的违规次数."
+
+# 服务器卡顿保护
+lag_protection:
+  # 触发保护的阈值, 越小越灵敏
+  threshold: 500 # 毫秒
+  # 触发保护时的消息提示 (处于卡顿时每隔15秒发送一次). 占位符: %prefix%
+  message: "%prefix% §c检测到服务器卡顿(延迟: %delay%ms), 已临时暂停检查."
+
+# 惩罚设置
+punish:
+  # 是否启用惩罚
+  enabled: true
+
+  # 执行惩罚时的消息提示. 占位符: %prefix%, %player%, %check%, %type%
+  message: "%prefix% §f%player% §7因触发 §f%check% §8(§7类型 §f%type%§8) §7达到阈值而被惩罚."
+
+  # 如果检测配置中的惩罚原因为空, 则使用这个原因
+  default_reason: "§cUnfair Advantage"
+
+  # 自定义指令. 占位符: %player%, %prefix%, %reason%
+  commands:
+    # 踢出指令
+    kick:
+      - "kick %player% %prefix% §7%reason%"
+    # 封禁指令
+    ban:
+      - "ban %player% %prefix% §7%reason%"
