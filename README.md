@@ -11,6 +11,8 @@
 
 可以看作是 [FairFight](https://github.com/dw1e/FairFight) 重构
 
+**视频:** [BiliBili](https://www.bilibili.com/video/BV1u49sBnEcx/)
+
 ## 安装
 **支持的版本:** 1.8 服务器上的 1.7 与 1.8 玩家 (不支持 高版本 与 跨版本 使用)
 
