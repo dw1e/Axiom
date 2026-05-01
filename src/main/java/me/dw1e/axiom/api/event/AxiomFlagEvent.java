@@ -29,6 +29,10 @@ public final class AxiomFlagEvent extends Event implements Cancellable {
         this.debug = debug;
     }
 
+    public static HandlerList getHandlerList() {
+        return HANDLERS;
+    }
+
     @Override
     public HandlerList getHandlers() {
         return HANDLERS;
