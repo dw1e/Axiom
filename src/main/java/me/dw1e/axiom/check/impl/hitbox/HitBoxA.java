@@ -50,10 +50,15 @@ public final class HitBoxA extends Check {
         if (packet instanceof CPacketUseEntity) {
             CPacketUseEntity wrapper = (CPacketUseEntity) packet;
 
+            // 从实体处理器中获取目标实体 (基于客户端视角模拟的位置数据)
             entity = entityProcessor.get(wrapper.getEntityId());
-            action = wrapper.getAction();
 
-        } else if (packet instanceof CPacketFlying) {
+            // 记录交互类型 (不仅用于攻击检测, 也可用于右键交互距离检测)
+            action = wrapper.getAction();
+        }
+        // 客户端发送数据包顺序: 先发 UseEntity 再发 Flying, 如果在 UseEntity 中直接检测, 此时服务端拿到的是旧位置, 会导致距离计算不准!
+        // 不用担心什么发包顺序绕过的问题, BadPacket A 就是检测发包顺序的, 以及他发包顺序不对还会 "误判"
+        else if (packet instanceof CPacketFlying) {
             HitboxEntity entity = this.entity;
             EnumWrappers.EntityUseAction action = this.action;
 
@@ -62,6 +67,7 @@ public final class HitBoxA extends Check {
 
             if (entity == null) return;
 
+            // 排除因为误判而不检查的实体类型
             EntityType entityType = entity.getEntityType();
             if (EXCLUDED_TYPES.contains(entityType)) return;
 
@@ -79,9 +85,16 @@ public final class HitBoxA extends Check {
             PlayerLocation from = moveProcessor.getFrom();
             PlayerLocation to = moveProcessor.getTo();
 
+            // 1.14 以前只有两个高度, 并且这两个高度中间没有衔接
+            // 必须用上一次的潜行状态, 因为我们是到下一个位置更新包检查的
             double eyeHeight = actionProcessor.wasSneak() ? 1.54 : 1.62;
 
+            // 客户端在同一 tick 内发送位置更新和攻击包, 但存在发送顺序差异 (先发 UseEntity 再发 Flying)
+            // 因此这里使用 from 计算眼睛位置 (对应攻击时的实际位置)
             Vector eyePos = new Vector(from.getX(), from.getY() + eyeHeight, from.getZ());
+
+            // 注意: 视角 (yaw & pitch) 会在下一个位置包中更新
+            // 所以这里使用 to 作为最新的视角数据
             Vector direction = MathUtil.getDirection(to.getYaw(), to.getPitch());
 
             Ray attackerRay = new Ray(eyePos, direction);
@@ -92,8 +105,11 @@ public final class HitBoxA extends Check {
 
             if (intersection != null) {
                 double distance = intersection.distance(eyePos);
+
+                // 创造模式手 5.0 格长, 其它模式 3.0 格 (包括观察者模式)
                 double maxDistance = attributeProcessor.isInstantlyBuild() ? 5.0 : 3.0;
 
+                // Reach 检查: 与实体交互距离超过限制
                 if (distance > maxDistance) {
                     flag(String.format("%s %s at %.5f blocks", actionName, entityTypeName, distance));
                 }
@@ -111,13 +127,16 @@ public final class HitBoxA extends Check {
                         if (blockHit != null && blockHit.distance(eyePos) < distance) {
                             String blockName = block.getType().name().toLowerCase();
 
+                            // 隔墙交互实体检查
                             flag(String.format("%s %s through %s", actionName, entityTypeName, blockName));
                             return;
                         }
                     }
                 }
 
-            } else {
+            }
+            // Hitbox 检查: 和实体交互了, 但是射线没命中任何实体, 说明他修改了 Hitbox
+            else {
                 flag(String.format("missed hitbox of %s", entityTypeName));
             }
         }
