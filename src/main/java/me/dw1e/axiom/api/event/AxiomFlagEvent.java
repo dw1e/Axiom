@@ -9,6 +9,9 @@ import org.bukkit.event.HandlerList;
 
 public final class AxiomFlagEvent extends Event implements Cancellable {
 
+    // 提示: 反作弊测试服建议加个判断 violations >= thresholds 再警报, 不然一点误判冗余都没有
+    // 以及 当前 VL = violations + addVL, 因为这个事件触发时, addVL 还未添加进 violations 中
+
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final Player player;

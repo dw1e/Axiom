@@ -45,7 +45,7 @@ public final class TimerB extends Check {
                     double mean = MathUtil.mean(samples);
                     double speed = 50.0 / mean;
 
-                    if (mean <= 49.5) {
+                    if (mean <= 49.0) {
                         flag(String.format("speed=%.2fx", speed));
                     } else {
                         decreaseVL(0.4);
