@@ -44,9 +44,11 @@ public final class PingProcessor extends Processor {
         if (packet instanceof CPacketTransaction) {
             CPacketTransaction wrapper = (CPacketTransaction) packet;
 
+            // 判断是不是我们自己发的确认包
             short id = wrapper.getActionId();
             if (transactionMap.get(id) == null) return;
 
+            // 计算跳过了多少确认包
             int skipped = 0;
             for (short transaction : sentTransactions) {
                 if (transaction == id) break;
@@ -54,10 +56,13 @@ public final class PingProcessor extends Processor {
                 skipped++;
             }
 
+            // 跳过确认包检测. 刚进服会误判, 延迟 5 秒再检查
             if (skipped > 0 && data.getTick() > 100) {
                 data.getCheck(BadPacketK.class).flag("skipped=" + skipped);
             }
 
+            // 如果他跳过了确认包, 那么我们就默认他也接收到了在此之前的包
+            // PS: 这个跳包检测有小概率会因为其它发确认包的插件由于撞 transID 而误判, 并且会连锁误判下面的 "默认收到" 机制
             Short current;
             while ((current = sentTransactions.poll()) != null) {
                 TransactionData transData = transactionMap.remove(current);

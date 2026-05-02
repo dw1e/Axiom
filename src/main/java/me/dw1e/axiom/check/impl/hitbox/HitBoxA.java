@@ -106,12 +106,19 @@ public final class HitBoxA extends Check {
             if (intersection != null) {
                 double distance = intersection.distance(eyePos);
 
-                // 创造模式手 5.0 格长, 其它模式 3.0 格 (包括观察者模式)
-                double maxDistance = attributeProcessor.isInstantlyBuild() ? 5.0 : 3.0;
+                // 1.8 创造模式实体交互距离手长 5.0 格, 其它模式 3.0 格 (包括观察者模式)
+                // PS: 跨版本不会将攻击距离修改, 所以他们只能在创造打出 4.0 格
+                boolean isCreative = attributeProcessor.isInstantlyBuild();
+                double maxDistance = isCreative ? 5.0 : 3.0;
 
                 // Reach 检查: 与实体交互距离超过限制
                 if (distance > maxDistance) {
-                    flag(String.format("%s %s at %.5f blocks", actionName, entityTypeName, distance));
+                    double addVL = Math.min(3.0, Math.floor(distance - maxDistance) + 1.0); // 如果打的远就多加点 VL
+
+                    flag(String.format(
+                            "%s %s at %.5f blocks%s",
+                            actionName, entityTypeName, distance, (isCreative ? " (creative)" : "")
+                    ), addVL);
                 }
 
                 BlockIterator iterator = new BlockIterator(data.getPlayer().getWorld(),

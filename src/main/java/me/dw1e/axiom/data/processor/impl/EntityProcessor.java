@@ -25,6 +25,7 @@ public final class EntityProcessor extends Processor {
     public EntityProcessor(PlayerData data) {
         super(data);
 
+        // 热加载支持
         TaskUtil.runTask(() -> {
             int range = 48; // 48 是 spigot.yml -> entity-tracking-range 里的默认值
             for (Entity entity : data.getPlayer().getNearbyEntities(range, range, range)) {

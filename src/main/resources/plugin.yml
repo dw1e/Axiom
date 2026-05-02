@@ -1,6 +1,6 @@
 name: Axiom
 main: me.dw1e.axiom.Axiom
-version: 0.1.2.0
+version: 0.1.3.0
 description: A private anti-cheat system.
 author: dw1e
 depend: [ ProtocolLib ]

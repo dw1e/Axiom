@@ -53,17 +53,24 @@ public final class PhaseA extends Check {
 
                     if (!EXCLUDED_TYPES.contains(mat)) {
 
-                        // 上次位置也在墙内, 不检查距离这个范围内 1 格
+                        // 上次位置也在墙内, 不检查距离这个范围内 3 格
                         if (lastGoodLocation != null
                                 && getInsideBlock(lastGoodLocation) != null
-                                && to.distanceSquared(lastGoodLocation) <= 1.0
+                                && to.distanceSquared(lastGoodLocation) <= 3.0
                         ) return;
 
-                        if (data.getPlayer().getGameMode() == GameMode.SPECTATOR) return;
+                        // 修复观察者模式穿墙时, 如果在墙中切模式会被弹出去
+                        if (data.getPlayer().getGameMode() == GameMode.SPECTATOR) {
+                            lastGoodLocation = to.clone();
+                            violations *= 0.99;
+                            return;
+                        }
 
-                        flag("inside " + mat.name().toLowerCase());
+                        if (lastGoodLocation != null) {
+                            flag("inside " + mat.name().toLowerCase());
 
-                        if (lastGoodLocation != null) moveProcessor.sendTeleport(lastGoodLocation);
+                            moveProcessor.sendTeleport(lastGoodLocation);
+                        }
                     }
                 }
             } else {

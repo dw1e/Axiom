@@ -10,7 +10,12 @@ import org.bukkit.util.Vector;
 
 public final class EmulationProcessor extends Processor {
 
+    // 模拟处理器: 模拟玩家可能的移动方式, 看哪一种最接近真实情况.
+
+    // 当前最优模拟与真实移动的误差
     private double minDistance = Double.MAX_VALUE;
+
+    // 当前最优模拟结果下, 玩家的状态组合
     private boolean sprint, jump, using, hitSlowdown, fastMath;
 
     public EmulationProcessor(PlayerData data) {
