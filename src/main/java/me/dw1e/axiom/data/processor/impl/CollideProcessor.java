@@ -18,11 +18,12 @@ import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 // 部分借鉴自 Hawk 作者 Islandscout
 public final class CollideProcessor extends Processor {
 
-    private final Map<BlockPosition, Boolean> ghostBlocks = new HashMap<>();
+    private final Map<BlockPosition, Boolean> ghostBlocks = new ConcurrentHashMap<>();
 
     private List<Block> activeBlocks;
 

@@ -13,12 +13,12 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class EntityProcessor extends Processor {
 
-    private final Map<Integer, HitboxEntity> entityMap = new HashMap<>();
+    private final Map<Integer, HitboxEntity> entityMap = new ConcurrentHashMap<>();
 
     private boolean onBoat;
 

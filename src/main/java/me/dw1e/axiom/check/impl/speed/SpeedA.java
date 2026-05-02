@@ -67,7 +67,7 @@ public final class SpeedA extends Check {
             double threshold = 1E-5;
 
             // 攻击时若强制疾跑一直切换状态会误判
-            if (actionProcessor.getTicksSinceAttack() < 10) threshold += 0.01;
+            if (actionProcessor.getTicksSinceAttack() < 10) threshold += 0.03;
 
             // 上上次未移动的误判
             if (!moveProcessor.getPrevious().isUpdatePos()) threshold += 0.01;

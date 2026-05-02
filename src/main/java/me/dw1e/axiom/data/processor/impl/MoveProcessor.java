@@ -19,13 +19,13 @@ import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public final class MoveProcessor extends Processor {
 
-    private final Deque<Pair<PlayerLocation, Integer>> pendingTeleports = new ArrayDeque<>();
+    private final Deque<Pair<PlayerLocation, Integer>> pendingTeleports = new ConcurrentLinkedDeque<>();
 
     private final PlayerLocation to;
     private PlayerLocation previous, from;
