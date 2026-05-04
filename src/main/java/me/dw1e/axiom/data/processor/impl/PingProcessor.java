@@ -24,12 +24,15 @@ public final class PingProcessor extends Processor {
     private final Map<Short, TransactionData> transactionMap = new ConcurrentHashMap<>();
     private final Deque<PacketContainer> lagCachePackets = new ConcurrentLinkedDeque<>();
 
+    private TransactionData currentTickTransaction;
+
     private short transactionID = Short.MIN_VALUE;
 
-    private long lastFlyingTime;
-    private int lastPingTick;
-
     private volatile long lastPing, ping;
+    private long lastFlyingTime;
+
+    private int lastPingTick;
+    private int currentTick = -1;
 
     public PingProcessor(PlayerData data) {
         super(data);
@@ -46,7 +49,7 @@ public final class PingProcessor extends Processor {
 
             // 判断是不是我们自己发的确认包
             short id = wrapper.getActionId();
-            if (transactionMap.get(id) == null) return;
+            if (!transactionMap.containsKey(id)) return;
 
             // 计算跳过了多少确认包
             int skipped = 0;
@@ -71,8 +74,7 @@ public final class PingProcessor extends Processor {
                     lastPing = ping;
                     ping = now - transData.time;
 
-                    Runnable action = transData.action;
-                    if (action != null) action.run();
+                    transData.runAll();
                 }
 
                 if (current == id) break;
@@ -82,8 +84,8 @@ public final class PingProcessor extends Processor {
             SPacketTransaction wrapper = (SPacketTransaction) packet;
 
             short id = wrapper.getActionId();
-
             TransactionData transData = transactionMap.get(id);
+
             if (transData != null && transData.time == 0L) {
                 transData.time = now;
                 sentTransactions.add(id);
@@ -112,19 +114,39 @@ public final class PingProcessor extends Processor {
         }
     }
 
+    /*
+     * 在当前 tick 上注册一个 confirm 回调
+     *
+     * 特性:
+     * - 同一个 tick 内所有 confirm 共享一个 transaction
+     * - 只会发送一次 transaction 包
+     * - 回包后执行所有 action
+     */
     @SuppressWarnings("deprecation")
     public void confirm(Runnable runnable) {
-        short id = transactionID++;
-        if (transactionID >= 0) transactionID = Short.MIN_VALUE;
+        int tick = data.getTick();
 
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.TRANSACTION);
-        packet.getIntegers().write(0, 0);
-        packet.getShorts().write(0, id);
-        packet.getBooleans().write(0, false);
+        // 新 tick -> 创建新的 transaction
+        if (tick != currentTick) {
+            currentTick = tick;
 
-        transactionMap.put(id, new TransactionData(runnable));
+            short id = transactionID++;
+            if (transactionID >= 0) transactionID = Short.MIN_VALUE;
 
-        Axiom.getPlugin().getProtocolManager().sendServerPacket(data.getPlayer(), packet);
+            currentTickTransaction = new TransactionData();
+            transactionMap.put(id, currentTickTransaction);
+
+            // 每 tick 只发送一次 transaction
+            PacketContainer packet = new PacketContainer(PacketType.Play.Server.TRANSACTION);
+            packet.getIntegers().write(0, 0);
+            packet.getShorts().write(0, id);
+            packet.getBooleans().write(0, false);
+
+            Axiom.getPlugin().getProtocolManager().sendServerPacket(data.getPlayer(), packet);
+        }
+
+        // 同 tick 的 confirm 全部挂到这个 transaction 上
+        currentTickTransaction.add(runnable);
     }
 
     public void testConnect() {
@@ -135,10 +157,6 @@ public final class PingProcessor extends Processor {
 
             confirm(() -> {/* test ping */});
         }
-    }
-
-    public short getTransactionID() {
-        return transactionID;
     }
 
     public long getLastPing() {
@@ -161,7 +179,6 @@ public final class PingProcessor extends Processor {
         if (ping <= 0L || lastPing <= 0L) return false;
 
         long diff = Math.abs(ping - lastPing);
-
         return diff >= minDiff && diff >= lastPing * ratio;
     }
 
@@ -178,11 +195,20 @@ public final class PingProcessor extends Processor {
     }
 
     private static final class TransactionData {
-        private final Runnable action;
+
+        private final Deque<Runnable> actions = new ConcurrentLinkedDeque<>();
         private volatile long time;
 
-        private TransactionData(Runnable action) {
-            this.action = action;
+        public void add(Runnable action) {
+            if (action != null) actions.add(action);
+        }
+
+        public void runAll() {
+            Runnable action;
+
+            while ((action = actions.poll()) != null) {
+                action.run();
+            }
         }
     }
 }
