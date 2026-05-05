@@ -69,6 +69,11 @@ public final class SpeedA extends Check {
             // 攻击时若强制疾跑一直切换状态会误判
             if (actionProcessor.getTicksSinceAttack() < 10) threshold += 0.03;
 
+            // 从走路切换到疾跑的第一个tick, 实际移动仍由走路速度驱动
+            if (sprinting && !actionProcessor.wasSprint()) {
+                attribute = (originalAttributeSpeed / 1.3F) * 0.16277136F / (float) Math.pow(friction, 3.0F);
+            }
+
             // 上上次未移动的误判
             if (!moveProcessor.getPrevious().isUpdatePos()) threshold += 0.01;
 
